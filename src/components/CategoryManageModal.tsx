@@ -112,7 +112,7 @@ export const CategoryManageModal: React.FC<CategoryManageModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] bg-slate-900/95 border-white/20 text-white">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-slate-900/95 border-white/20 text-white mx-4">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center">
             <span className="mr-2">🏷️</span>

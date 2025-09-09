@@ -26,3 +26,58 @@
     --radius: 0.5rem;
   }
 }
+
+/* 빠른 tooltip 스타일 */
+.tooltip {
+  position: relative;
+}
+
+.tooltip:before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+.tooltip:after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 1000;
+  margin-bottom: 1px;
+}
+
+.tooltip:hover:before,
+.tooltip:hover:after {
+  opacity: 1;
+}
+
+/* 데스크톱에서만 표시 */
+@media (max-width: 640px) {
+  .tooltip:before,
+  .tooltip:after {
+    display: none;
+  }
+}

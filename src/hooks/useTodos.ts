@@ -1,36 +1,120 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Todo, Category } from '@/types/todo';
 import { defaultCategories } from '@/types/todo';
 
-const TODOS_STORAGE_KEY = 'todolist-todos';
-const CATEGORIES_STORAGE_KEY = 'todolist-categories';
+const GUEST_TODOS_KEY = 'todolist-guest-todos';
+const GUEST_CATEGORIES_KEY = 'todolist-guest-categories';
 
-export const useTodos = () => {
+const getUserStorageKey = (userId: string, type: 'todos' | 'categories') => {
+  return `todolist-user-${userId}-${type}`;
+};
+
+export const useTodos = (userId?: string) => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
 
-  // 로컬 스토리지에서 데이터 로드
-  useEffect(() => {
-    const savedTodos = localStorage.getItem(TODOS_STORAGE_KEY);
-    const savedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-
-    if (savedTodos) {
-      try {
-        setTodos(JSON.parse(savedTodos));
-      } catch (error) {
-        console.error('할일 데이터 로드 실패:', error);
+  // 데이터 저장 함수
+  const saveData = useCallback((todosData: Todo[], categoriesData: Category[]) => {
+    try {
+      if (userId) {
+        // 로그인된 사용자의 데이터
+        localStorage.setItem(getUserStorageKey(userId, 'todos'), JSON.stringify(todosData));
+        localStorage.setItem(getUserStorageKey(userId, 'categories'), JSON.stringify(categoriesData));
+      } else {
+        // 게스트 데이터
+        localStorage.setItem(GUEST_TODOS_KEY, JSON.stringify(todosData));
+        localStorage.setItem(GUEST_CATEGORIES_KEY, JSON.stringify(categoriesData));
       }
+    } catch (error) {
+      console.error('데이터 저장 실패:', error);
     }
+  }, [userId]);
 
-    if (savedCategories) {
-      try {
+  // 데이터 로드 함수
+  const loadData = useCallback(() => {
+    try {
+      let savedTodos: string | null;
+      let savedCategories: string | null;
+
+      if (userId) {
+        // 로그인된 사용자의 데이터
+        savedTodos = localStorage.getItem(getUserStorageKey(userId, 'todos'));
+        savedCategories = localStorage.getItem(getUserStorageKey(userId, 'categories'));
+      } else {
+        // 게스트 데이터
+        savedTodos = localStorage.getItem(GUEST_TODOS_KEY);
+        savedCategories = localStorage.getItem(GUEST_CATEGORIES_KEY);
+      }
+
+      if (savedTodos) {
+        setTodos(JSON.parse(savedTodos));
+      } else {
+        setTodos([]);
+      }
+
+      if (savedCategories) {
         setCategories(JSON.parse(savedCategories));
-      } catch (error) {
-        console.error('카테고리 데이터 로드 실패:', error);
+      } else {
         setCategories(defaultCategories);
       }
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+      setTodos([]);
+      setCategories(defaultCategories);
+    }
+  }, [userId]);
+
+  // 게스트 데이터를 사용자 계정으로 이전
+  const transferGuestDataToUser = useCallback((newUserId: string) => {
+    try {
+      const guestTodos = localStorage.getItem(GUEST_TODOS_KEY);
+      const guestCategories = localStorage.getItem(GUEST_CATEGORIES_KEY);
+
+      if (guestTodos || guestCategories) {
+        // 기존 사용자 데이터 확인
+        const existingTodos = localStorage.getItem(getUserStorageKey(newUserId, 'todos'));
+        const existingCategories = localStorage.getItem(getUserStorageKey(newUserId, 'categories'));
+
+        let finalTodos: Todo[] = [];
+        let finalCategories: Category[] = defaultCategories;
+
+        // 기존 사용자 데이터가 있다면 그것을 사용
+        if (existingTodos) {
+          finalTodos = JSON.parse(existingTodos);
+        } else if (guestTodos) {
+          // 기존 데이터가 없고 게스트 데이터가 있다면 게스트 데이터를 이전
+          finalTodos = JSON.parse(guestTodos);
+        }
+
+        if (existingCategories) {
+          finalCategories = JSON.parse(existingCategories);
+        } else if (guestCategories) {
+          finalCategories = JSON.parse(guestCategories);
+        }
+
+        // 사용자 계정에 데이터 저장
+        localStorage.setItem(getUserStorageKey(newUserId, 'todos'), JSON.stringify(finalTodos));
+        localStorage.setItem(getUserStorageKey(newUserId, 'categories'), JSON.stringify(finalCategories));
+
+        // 게스트 데이터 삭제
+        localStorage.removeItem(GUEST_TODOS_KEY);
+        localStorage.removeItem(GUEST_CATEGORIES_KEY);
+
+        // 상태 업데이트
+        setTodos(finalTodos);
+        setCategories(finalCategories);
+
+        console.log(`게스트 데이터를 사용자 ${newUserId}에게 이전 완료`);
+      }
+    } catch (error) {
+      console.error('게스트 데이터 이전 실패:', error);
     }
   }, []);
+
+  // 사용자 변경 시 데이터 로드
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // 할일 추가
   const addTodo = (todoData: Omit<Todo, 'id' | 'status' | 'createdAt' | 'order'>) => {
@@ -50,8 +134,8 @@ export const useTodos = () => {
     const updatedTodos = [...todos, newTodo];
     console.log('업데이트된 할일 목록:', updatedTodos);
     setTodos(updatedTodos);
-    localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(updatedTodos));
-    console.log('localStorage 저장 완료');
+    saveData(updatedTodos, categories);
+    console.log('저장 완료');
   };
 
   // 할일 상태 변경
@@ -69,14 +153,14 @@ export const useTodos = () => {
     });
 
     setTodos(updatedTodos);
-    localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(updatedTodos));
+    saveData(updatedTodos, categories);
   };
 
   // 할일 삭제
   const deleteTodo = (todoId: string) => {
     const updatedTodos = todos.filter(todo => todo.id !== todoId);
     setTodos(updatedTodos);
-    localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(updatedTodos));
+    saveData(updatedTodos, categories);
   };
 
   // 할일 수정
@@ -89,7 +173,7 @@ export const useTodos = () => {
     });
 
     setTodos(updatedTodos);
-    localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(updatedTodos));
+    saveData(updatedTodos, categories);
   };
 
   // 특정 날짜의 할일 가져오기
@@ -122,7 +206,7 @@ export const useTodos = () => {
     
     const allTodos = [...otherTodos, ...updatedDayTodos];
     setTodos(allTodos);
-    localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(allTodos));
+    saveData(allTodos, categories);
   };
 
   // 카테고리 정보 가져오기
@@ -139,7 +223,7 @@ export const useTodos = () => {
 
     const updatedCategories = [...categories, newCategory];
     setCategories(updatedCategories);
-    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+    saveData(todos, updatedCategories);
   };
 
   // 카테고리 수정
@@ -152,7 +236,7 @@ export const useTodos = () => {
     });
 
     setCategories(updatedCategories);
-    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+    saveData(todos, updatedCategories);
   };
 
   // 카테고리 삭제
@@ -164,12 +248,11 @@ export const useTodos = () => {
         : todo
     );
     setTodos(updatedTodos);
-    localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(updatedTodos));
-
+    
     // 카테고리 삭제
     const updatedCategories = categories.filter(cat => cat.id !== categoryId);
     setCategories(updatedCategories);
-    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+    saveData(updatedTodos, updatedCategories);
   };
 
   return {
@@ -185,5 +268,6 @@ export const useTodos = () => {
     updateCategory,
     deleteCategory,
     reorderTodos,
+    transferGuestDataToUser,
   };
 };

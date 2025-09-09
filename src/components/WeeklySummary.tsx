@@ -71,86 +71,86 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
   };
 
   return (
-    <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-8 py-6">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-2xl text-white flex items-center justify-between">
+    <Card className="bg-white/10 backdrop-blur-sm border-white/20 mb-6 sm:mb-8 py-4 sm:py-6">
+      <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
+        <CardTitle className="text-xl sm:text-2xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center">
-            <TrendingUp className="h-6 w-6 mr-3 text-blue-400" />
-            이번 주 진행상황
+            <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-blue-400" />
+            <span className="text-lg sm:text-2xl">이번 주 진행상황</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-slate-300">
-            <Target className="h-4 w-4" />
-            <Badge variant="outline" className="text-slate-300 border-slate-300">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-300">
+            <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Badge variant="outline" className="text-slate-300 border-slate-300 text-xs sm:text-sm">
               완료율 {stats.completionRate}%
             </Badge>
           </div>
         </CardTitle>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="px-4 sm:px-6">
 
       {/* 전체 통계 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white/5 rounded-lg p-4 text-center">
-          <div className="flex items-center justify-center mb-2">
-            <Circle className="h-5 w-5 text-slate-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-3 sm:mb-6">
+        <div className="bg-white/5 rounded-lg p-2 sm:p-4 text-center">
+          <div className="flex items-center justify-center mb-1">
+            <Circle className="h-3 w-3 sm:h-5 sm:w-5 text-slate-400" />
           </div>
-          <div className="text-2xl font-bold text-white">{stats.total}</div>
-          <div className="text-xs text-slate-400">전체 할일</div>
+          <div className="text-base sm:text-2xl font-bold text-white">{stats.total}</div>
+          <div className="text-xs text-slate-400">전체</div>
         </div>
         
-        <div className="bg-green-500/10 rounded-lg p-4 text-center">
-          <div className="flex items-center justify-center mb-2">
-            <CheckCircle2 className="h-5 w-5 text-green-400" />
+        <div className="bg-green-500/10 rounded-lg p-2 sm:p-4 text-center">
+          <div className="flex items-center justify-center mb-1">
+            <CheckCircle2 className="h-3 w-3 sm:h-5 sm:w-5 text-green-400" />
           </div>
-          <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
+          <div className="text-base sm:text-2xl font-bold text-green-400">{stats.completed}</div>
           <div className="text-xs text-slate-400">완료</div>
         </div>
         
-        <div className="bg-yellow-500/10 rounded-lg p-4 text-center">
-          <div className="flex items-center justify-center mb-2">
-            <Clock className="h-5 w-5 text-yellow-400" />
+        <div className="bg-yellow-500/10 rounded-lg p-2 sm:p-4 text-center">
+          <div className="flex items-center justify-center mb-1">
+            <Clock className="h-3 w-3 sm:h-5 sm:w-5 text-yellow-400" />
           </div>
-          <div className="text-2xl font-bold text-yellow-400">{stats.inProgress}</div>
+          <div className="text-base sm:text-2xl font-bold text-yellow-400">{stats.inProgress}</div>
           <div className="text-xs text-slate-400">진행중</div>
         </div>
         
-        <div className="bg-slate-500/10 rounded-lg p-4 text-center">
-          <div className="flex items-center justify-center mb-2">
-            <Circle className="h-5 w-5 text-slate-400" />
+        <div className="bg-slate-500/10 rounded-lg p-2 sm:p-4 text-center">
+          <div className="flex items-center justify-center mb-1">
+            <Circle className="h-3 w-3 sm:h-5 sm:w-5 text-slate-400" />
           </div>
-          <div className="text-2xl font-bold text-slate-400">{stats.pending}</div>
+          <div className="text-base sm:text-2xl font-bold text-slate-400">{stats.pending}</div>
           <div className="text-xs text-slate-400">대기중</div>
         </div>
       </div>
 
       {/* 진행률 바 */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-slate-300">주간 진행률</span>
-          <span className="text-sm text-white font-medium">{stats.completionRate}%</span>
+      <div className="mb-3 sm:mb-6">
+        <div className="flex items-center justify-between mb-1 sm:mb-2">
+          <span className="text-xs sm:text-sm text-slate-300">주간 진행률</span>
+          <span className="text-xs sm:text-sm text-white font-medium">{stats.completionRate}%</span>
         </div>
-        <div className="w-full bg-white/10 rounded-full h-3">
+        <div className="w-full bg-white/10 rounded-full h-2 sm:h-3">
           <div 
-            className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-500"
+            className="bg-gradient-to-r from-green-500 to-blue-500 h-2 sm:h-3 rounded-full transition-all duration-500"
             style={{ width: `${stats.completionRate}%` }}
           ></div>
         </div>
       </div>
 
       {/* 카테고리별 성과 & 가장 생산적인 날 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 mb-3 sm:mb-6">
         {/* 카테고리별 성과 */}
         <div>
-          <h3 className="text-sm font-medium text-slate-300 mb-3">카테고리별 진행률</h3>
-          <div className="space-y-2">
-            {categoryStats.slice(0, 3).map((stat) => (
-              <div key={stat.category.id} className="flex items-center gap-3">
+          <h3 className="text-xs font-medium text-slate-300 mb-2">카테고리별 진행률</h3>
+          <div className="space-y-1">
+            {categoryStats.slice(0, 2).map((stat) => (
+              <div key={stat.category.id} className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: stat.category.color }}
                 ></div>
-                <span className="text-sm text-white flex-1">{stat.category.name}</span>
+                <span className="text-xs text-white flex-1 truncate">{stat.category.name}</span>
                 <span className="text-xs text-slate-400">
                   {stat.completed}/{stat.total}
                 </span>
@@ -164,12 +164,12 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
 
         {/* 가장 생산적인 날 */}
         <div>
-          <h3 className="text-sm font-medium text-slate-300 mb-3">가장 활발한 날</h3>
-          <div className="bg-white/5 rounded-lg p-3">
-            <div className="text-lg font-bold text-white">
+          <h3 className="text-xs font-medium text-slate-300 mb-2">가장 활발한 날</h3>
+          <div className="bg-white/5 rounded-lg p-2">
+            <div className="text-sm font-bold text-white">
               {mostProductiveDay.day === '이번 주에 할 일' ? '주간 할일' : mostProductiveDay.day}
             </div>
-            <div className="text-sm text-slate-400">
+            <div className="text-xs text-slate-400">
               {mostProductiveDay.completed}개 완료 / {mostProductiveDay.total}개 중
             </div>
           </div>
@@ -177,8 +177,8 @@ export const WeeklySummary: React.FC<WeeklySummaryProps> = ({
       </div>
 
       {/* 격려 메시지 */}
-      <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-4 border border-blue-500/20">
-        <p className="text-white text-center font-medium">
+      <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-2 sm:p-4 border border-blue-500/20">
+        <p className="text-white text-center font-medium text-xs sm:text-base">
           {getMotivationalMessage()}
         </p>
       </div>

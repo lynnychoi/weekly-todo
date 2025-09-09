@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Eye, EyeOff, Settings, LogIn, LogOut } from 'lucide-react';
+import type { User as UserType } from '@/types/user';
 
 interface WeekNavigationProps {
   currentWeek: Date;
   onWeekChange: (date: Date) => void;
   viewMode: 'basic' | 'detailed';
   onViewModeChange: (mode: 'basic' | 'detailed') => void;
+  onOpenCategoryModal: () => void;
+  user: UserType | null;
+  onOpenAuthModal: () => void;
+  onLogout: () => void;
 }
 
 export const WeekNavigation: React.FC<WeekNavigationProps> = ({
@@ -14,6 +19,10 @@ export const WeekNavigation: React.FC<WeekNavigationProps> = ({
   onWeekChange,
   viewMode,
   onViewModeChange,
+  onOpenCategoryModal,
+  user,
+  onOpenAuthModal,
+  onLogout,
 }) => {
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -24,7 +33,17 @@ export const WeekNavigation: React.FC<WeekNavigationProps> = ({
     const startOfYear = new Date(year, 0, 1);
     const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
     const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-    return `${year}년 ${month}월 ${weekNumber}주차`;
+    
+    // 월의 몇 번째 주인지 계산
+    const firstDayOfMonth = new Date(year, month - 1, 1);
+    const startOfFirstWeek = new Date(firstDayOfMonth);
+    const dayOfWeek = startOfFirstWeek.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    startOfFirstWeek.setDate(startOfFirstWeek.getDate() + diffToMonday);
+    
+    const weekOfMonth = Math.ceil((date.getDate() + new Date(year, month - 1, 1).getDay()) / 7);
+    
+    return `${year}년 ${month}월 ${weekOfMonth}째주 (${weekNumber}주차)`;
   };
 
   const goToPreviousWeek = () => {
@@ -59,36 +78,30 @@ export const WeekNavigation: React.FC<WeekNavigationProps> = ({
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 mb-8 relative z-40">
-      <div className="flex items-center justify-between">
-        {/* 왼쪽: 주간 네비게이션 */}
-        <div className="flex items-center gap-4">
+    <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-3 sm:p-6 mb-6 sm:mb-8 relative z-40">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+        {/* 첫 번째 줄: 주간 네비게이션 */}
+        <div className="flex items-center gap-2 justify-center">
           <Button
             variant="outline"
             size="icon"
             onClick={goToPreviousWeek}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 h-8 w-8 sm:h-10 sm:w-10 tooltip"
+            data-tooltip="이전 주"
           >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goToNextWeek}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
-          >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
 
           <div className="relative">
             <Button
               variant="outline"
               onClick={() => setShowCalendar(!showCalendar)}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 min-w-[200px]"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 min-w-[160px] sm:min-w-[280px] text-xs sm:text-base px-3 sm:px-4 h-8 sm:h-10 tooltip"
+              data-tooltip="날짜 선택"
             >
-              <Calendar className="h-4 w-4 mr-2" />
-              {getWeekString(currentWeek)}
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <span className="hidden sm:inline">{getWeekString(currentWeek)}</span>
+              <span className="sm:hidden">{getWeekString(currentWeek).replace('년 ', '/').replace('월 ', '/').replace('째주 (', ' (').replace('주차)', '주)')}</span>
             </Button>
             
             {showCalendar && (
@@ -108,32 +121,74 @@ export const WeekNavigation: React.FC<WeekNavigationProps> = ({
 
           <Button
             variant="outline"
-            onClick={goToToday}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+            size="icon"
+            onClick={goToNextWeek}
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 h-8 w-8 sm:h-10 sm:w-10 tooltip"
+            data-tooltip="다음 주"
           >
-            오늘
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
 
-        {/* 오른쪽: 뷰 모드 토글 */}
-        <div className="flex items-center gap-2">
+        {/* 두 번째 줄 (모바일) / 같은 줄 (데스크톱): 컨트롤 버튼들 */}
+        <div className="flex items-center gap-2 justify-center">
           <Button
             variant="outline"
+            onClick={goToToday}
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 text-xs sm:text-base px-3 sm:px-4 h-8 sm:h-10 tooltip"
+            data-tooltip="오늘로 이동"
+          >
+            오늘
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => onViewModeChange(viewMode === 'basic' ? 'detailed' : 'basic')}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10 tooltip"
+            data-tooltip={viewMode === 'basic' ? '자세히 보기' : '기본 보기'}
           >
             {viewMode === 'basic' ? (
-              <>
-                <Eye className="h-4 w-4 mr-2" />
-                자세히 보기
-              </>
+              <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
             ) : (
-              <>
-                <EyeOff className="h-4 w-4 mr-2" />
-                기본 보기
-              </>
+              <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" />
             )}
           </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onOpenCategoryModal}
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 h-8 w-8 sm:h-10 sm:w-10 tooltip"
+            data-tooltip="카테고리 관리"
+          >
+            <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+          </Button>
+
+          {/* 데스크톱에서만 로그인/로그아웃 버튼 표시 */}
+          <div className="hidden sm:block">
+            {user ? (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onLogout}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 h-8 w-8 sm:h-10 sm:w-10 tooltip"
+                data-tooltip={`${user.name}님, 로그아웃`}
+              >
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onOpenAuthModal}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 h-8 w-8 sm:h-10 sm:w-10 tooltip"
+                data-tooltip="로그인"
+              >
+                <LogIn className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

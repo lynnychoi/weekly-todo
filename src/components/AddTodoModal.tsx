@@ -67,7 +67,7 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-slate-900/95 border-white/20 text-white">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-slate-900/95 border-white/20 text-white mx-4">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center">
             <span className="mr-2">✨</span>
@@ -78,7 +78,7 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* 할일 제목 */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-white font-medium">
@@ -120,7 +120,7 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({
           </div>
 
           {/* 마감일 */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label htmlFor="dueDate" className="text-white font-medium">
                 마감일
