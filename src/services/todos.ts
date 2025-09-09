@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/supabase'
+import type { DbTodoStatus } from '@/types/todo'
 
 type Todo = Database['public']['Tables']['todos']['Row']
 type TodoInsert = Database['public']['Tables']['todos']['Insert']
@@ -71,7 +72,7 @@ export class TodoService {
   }
 
   // 할일 상태 업데이트
-  static async updateTodoStatus(userId: string, todoId: string, status: 'unchecked' | 'checked'): Promise<Todo> {
+  static async updateTodoStatus(userId: string, todoId: string, status: DbTodoStatus): Promise<Todo> {
     const updateData: TodoUpdate = {
       status,
       completed_at: status === 'checked' ? new Date().toISOString() : null,
@@ -127,7 +128,7 @@ export class TodoService {
   }
 
   // 할일 순서 변경
-  static async reorderTodos(userId: string, day: string, todoIds: string[]): Promise<void> {
+  static async reorderTodos(userId: string, _day: string, todoIds: string[]): Promise<void> {
     const updates = todoIds.map((id, index) => ({
       id,
       user_id: userId,

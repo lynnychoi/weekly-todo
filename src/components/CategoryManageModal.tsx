@@ -66,6 +66,7 @@ export const CategoryManageModal: React.FC<CategoryManageModalProps> = ({
     onAddCategory({
       name: newCategoryName.trim(),
       color: newCategoryColor,
+      icon: '📁', // 기본 아이콘
     });
     
     setNewCategoryName('');

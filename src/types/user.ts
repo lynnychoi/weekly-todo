@@ -1,3 +1,24 @@
-// 이제 Supabase Database 타입을 사용합니다
-// 이 파일은 호환성을 위해 유지되지만, 새로운 코드에서는 @/lib/supabase의 타입을 사용하세요
+// Supabase Database 타입을 재export
 export type { Database } from '@/lib/supabase';
+
+// Auth 관련 타입들을 재export
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface SignupData {
+  email: string;
+  name: string;
+  password: string;
+}
+
+// User 타입 정의
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+  password_hash: string;
+  created_at: string;
+  updated_at: string;
+};

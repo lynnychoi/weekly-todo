@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TodoService } from '@/services/todos';
 import type { Database } from '@/lib/supabase';
-import type { Todo, Category } from '@/types/todo';
+import type { Todo, Category, DbTodoStatus } from '@/types/todo';
 import { defaultCategories } from '@/types/todo';
 
 type DbTodo = Database['public']['Tables']['todos']['Row'];
@@ -27,7 +27,7 @@ const mapAppTodoToDbTodo = (appTodo: Omit<Todo, 'id' | 'createdAt'>) => ({
   description: appTodo.description || null,
   category_id: appTodo.categoryId || null,
   day: appTodo.day,
-  status: appTodo.status,
+  status: (appTodo.status === 'loading' || appTodo.status === 'cancelled') ? 'unchecked' : appTodo.status as DbTodoStatus,
   priority: appTodo.priority,
   order_index: appTodo.order,
 });
@@ -177,7 +177,15 @@ export const useTodos = (userId?: string) => {
 
     // 로그인 모드: Supabase 사용
     try {
-      const dbTodoData = mapAppTodoToDbTodo({ ...todoData, status: 'unchecked', order: 0 });
+      const dbTodoData = {
+        title: todoData.title,
+        description: todoData.description || null,
+        category_id: todoData.categoryId || null,
+        day: todoData.day,
+        status: 'unchecked' as const,
+        priority: todoData.priority,
+        order_index: 0,
+      };
       const dbTodo = await TodoService.addTodo(userId, dbTodoData);
       const newTodo = mapDbTodoToAppTodo(dbTodo);
       
@@ -189,6 +197,8 @@ export const useTodos = (userId?: string) => {
 
   // 할일 상태 변경
   const updateTodoStatus = useCallback(async (todoId: string, status: Todo['status']) => {
+    // UI 상태를 DB 상태로 변환
+    const dbStatus: DbTodoStatus = (status === 'loading' || status === 'cancelled') ? 'unchecked' : status as DbTodoStatus;
     if (!userId) {
       // 게스트 모드: localStorage 사용
       const updatedTodos = todos.map(todo => {
@@ -209,7 +219,7 @@ export const useTodos = (userId?: string) => {
 
     // 로그인 모드: Supabase 사용
     try {
-      const dbTodo = await TodoService.updateTodoStatus(userId, todoId, status);
+      const dbTodo = await TodoService.updateTodoStatus(userId, todoId, dbStatus);
       const updatedTodo = mapDbTodoToAppTodo(dbTodo);
       
       setTodos(prev => prev.map(todo => 
@@ -257,15 +267,19 @@ export const useTodos = (userId?: string) => {
 
     // 로그인 모드: Supabase 사용
     try {
-      const dbUpdates = {
+      const dbUpdates: any = {
         title: updates.title,
         description: updates.description || null,
         category_id: updates.categoryId || null,
         day: updates.day,
-        status: updates.status,
         priority: updates.priority,
         order_index: updates.order,
       };
+
+      // status가 있고 유효한 DB 상태인 경우에만 포함
+      if (updates.status && (updates.status === 'checked' || updates.status === 'unchecked')) {
+        dbUpdates.status = updates.status;
+      }
 
       const dbTodo = await TodoService.updateTodo(userId, todoId, dbUpdates);
       const updatedTodo = mapDbTodoToAppTodo(dbTodo);

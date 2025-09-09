@@ -20,10 +20,11 @@ interface AddTodoModalProps {
   onAddTodo: (todoData: {
     title: string;
     categoryId: string;
-    dueDate: string;
-    dueTime: string;
+    dueDate?: string;
+    dueTime?: string;
     description: string;
     day: string;
+    priority: 'low' | 'medium' | 'high';
   }) => void;
 }
 
@@ -50,6 +51,7 @@ export const AddTodoModal: React.FC<AddTodoModalProps> = ({
       dueTime,
       description,
       day: selectedDay,
+      priority: 'medium' as const, // 기본값 설정
     };
     
     console.log('할일 추가 시도:', todoData);

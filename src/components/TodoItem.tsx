@@ -172,7 +172,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400">마감일시:</span>
                   <span className="text-xs text-white">
-                    {formatDateTime(todo.dueDate, todo.dueTime)}
+                    {formatDateTime(todo.dueDate || '', todo.dueTime || '')}
                   </span>
                 </div>
               )}
